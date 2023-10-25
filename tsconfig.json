@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "module": "esnext",
-    "lib": ["esnext"],
+    "lib": [
+      "esnext",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "target": "es2020",
     "declaration": true,
     "declarationMap": true,
@@ -15,5 +19,7 @@
     "esModuleInterop": true,
     "allowJs": false
   },
-  "include": ["packages"]
+  "include": [
+    "packages"
+  ]
 }

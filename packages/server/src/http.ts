@@ -1,6 +1,6 @@
 import http from 'http'
 import { Server } from 'http'
-import { Router, defineRouter } from './router'
+import { Router } from './router'
 
 interface HttpServerOptions {
   router: Router
@@ -20,15 +20,21 @@ export function createHttpServer(opts: HttpServerOptions): Server {
 function createHttpHandler(opts: HttpServerOptions) {
   return async (req: http.IncomingMessage, res: http.ServerResponse) => {
     const body = await getBody(req)
-    if (!body.status) return
-    const href = req.url!.startsWith('/') ? `http://127.0.0.1${req.url}` : req.url!
-    // 获取路径，去掉 /
-    const path = new URL(href).pathname.slice(1)
+    if (!body.status) {
+      res.end(JSON.stringify({ status: false }))
+      return
+    }
+    const path = body.data.method
     const { router } = opts
     // 调用方法
     if (router[path] && typeof router[path] === 'function') {
-      const result = router[path](...Object.values(body.data))
-      res.end(JSON.stringify(result))
+      const result = await router[path](...body.data.args)
+      res.end(
+        JSON.stringify({
+          status: true,
+          data: result
+        })
+      )
     }
   }
 }
@@ -56,15 +62,3 @@ async function getBody(req: http.IncomingMessage): Promise<BodyResult> {
     })
   })
 }
-
-const router = defineRouter({
-  a: (a: string) => {
-    return a
-  }
-})
-
-export type AppRouter = typeof router
-
-createHttpServer({
-  router: router
-}).listen(3721)
